@@ -5,6 +5,7 @@ const log = std.log.scoped(.App);
 const apprt = @import("apprt.zig");
 const Surface = @import("Surface.zig");
 const BlockingQueue = @import("datastruct/main.zig").BlockingQueue;
+const main_menu = @import("component/main_menu.zig");
 
 const Allocator = std.mem.Allocator;
 
@@ -16,18 +17,6 @@ focused: bool = true,
 focused_surface: ?*Surface = null,
 mailbox: Mailbox.Queue,
 
-pub fn init(alloc: Allocator) !*App {
-    const app_ptr = try create(alloc);
-
-    app_ptr.* = .{
-        .alloc = alloc,
-        .surfaces = .{},
-        .mailbox = .{},
-    };
-    
-    return app_ptr;
-}
-
 pub fn create(alloc: Allocator) !*App {
     const app_ptr = try alloc.create(App);
     errdefer alloc.destroy(app_ptr);
@@ -35,8 +24,9 @@ pub fn create(alloc: Allocator) !*App {
     app_ptr.* = .{
         .alloc = alloc,
         .surfaces = .{},
-        .mailbox = .{}
+        .mailbox = .{},
     };
+    errdefer app_ptr.surfaces.deinit(alloc);
     
     return app_ptr;
 }
@@ -44,6 +34,17 @@ pub fn create(alloc: Allocator) !*App {
 pub fn destroy(self: *App) void {
     self.surfaces.deinit(self.alloc);
     self.alloc.destroy(self);
+}
+
+pub fn addSurface(self: *App, surface: *Surface) !void {
+    try self.surfaces.append(self.alloc, surface);
+    _ = self.mailbox.push(.{ .redraw_surface = surface }, .{ .forever = {} });
+}
+
+pub fn setup(self: *App) !void {
+    const new_surface = try main_menu.create(self.alloc);
+    _ = self.mailbox.push(.{ .new_surface = new_surface }, .{ .instant = {} });
+    
 }
 
 pub fn tick(self: *App, rt_app: *apprt.App) !void {
@@ -54,6 +55,7 @@ fn drainMailbox(self: *App, rt_app: *apprt.App) !void {
     while (self.mailbox.pop()) |message| {
         log.debug("mailbox message = {s}", .{ @tagName(message) });
         switch (message) {
+            .new_surface => |surface| try self.addSurface(surface),
             .redraw_surface => |surface| self.redrawSurface(rt_app, surface),
         }
     }
@@ -65,6 +67,7 @@ fn redrawSurface(self: *App, rt_app: *apprt.App, surface: *Surface) void {
 }
 
 pub const Message = union(enum) {
+    new_surface: *Surface,
     redraw_surface: *Surface
 };
 

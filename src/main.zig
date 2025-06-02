@@ -7,7 +7,7 @@ pub fn main() !void {
     defer _ = gpa.deinit();
     const alloc = gpa.allocator();
 
-    var app = try App.init(alloc);
+    var app = try App.create(alloc);
     defer app.destroy();
 
     var app_runtime = try apprt.App.init(app, .{});

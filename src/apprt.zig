@@ -9,3 +9,4 @@ const Runtime = enum {
 pub const runtime = braille;
 
 pub const App = runtime.App;
+pub const Surface = runtime.Surface;
