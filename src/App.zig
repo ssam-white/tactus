@@ -3,9 +3,10 @@ const std = @import("std");
 const posix = std.posix;
 const log = std.log.scoped(.App);
 const apprt = @import("apprt.zig");
-const Surface = @import("Surface.zig");
+const Surface = @import("ui/Surface.zig");
 const BlockingQueue = @import("datastruct/main.zig").BlockingQueue;
-const main_menu = @import("component/main_menu.zig");
+const ui = @import("ui/main.zig");
+const main_menu = ui.surfaces.main_menu;
 
 const Allocator = std.mem.Allocator;
 

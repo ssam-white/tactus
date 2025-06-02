@@ -1,5 +1,5 @@
 const std = @import("std");
-const Menu = @import("component/Menu.zig");
+const Menu = @import("components/Menu.zig");
 
 const Allocator = std.mem.Allocator;
 

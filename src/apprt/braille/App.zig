@@ -2,7 +2,7 @@ const App = @This();
 const std = @import("std");
 const log = std.log.scoped(.braille_app);
 const CoreApp = @import("../../App.zig");
-const Surface = @import("../../Surface.zig");
+const Surface = @import("../../ui/Surface.zig");
 const brlapi = @import("../../lib/brlapi.zig");
 
 core_app: *CoreApp,

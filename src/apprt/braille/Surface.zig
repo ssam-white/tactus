@@ -1,7 +1,8 @@
 const Surface = @This();
 const std = @import("std");
-const CoreSurface = @import("../../Surface.zig");
-const Menu = @import("../../component/Menu.zig");
+const CoreSurface = @import("../../ui/Surface.zig");
+const ui = @import("../../ui/main.zig");
+const Menu = ui.components.Menu;
 const brlapi = @import("../../lib/brlapi.zig");
 
 pub fn redrawSurface(core_surface: *CoreSurface) void {

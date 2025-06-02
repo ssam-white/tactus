@@ -1,7 +1,8 @@
 const std = @import("std");
 const Surface = @This();
-const apprt = @import("apprt.zig");
+const apprt = @import("../apprt.zig");
 const Component = @import("component.zig").Component;
+
 const max_components: usize = 64;
 
 const Allocator = std.mem.Allocator;
