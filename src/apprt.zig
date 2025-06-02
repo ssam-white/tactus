@@ -1,3 +1,11 @@
-const renderer = @import("renderer.zig");
+const braille = @import("apprt/braille.zig");
 
-pub const Renderer = renderer.Renderer;
+const Runtime = enum {
+    braille,
+
+    pub const default = .braille;
+};
+
+pub const runtime = braille;
+
+pub const App = runtime.App;

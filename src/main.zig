@@ -1,5 +1,6 @@
 const std = @import("std");
 const App = @import("App.zig");
+const apprt = @import("apprt.zig");
 
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
@@ -9,7 +10,8 @@ pub fn main() !void {
     var app = try App.init(alloc);
     defer app.destroy();
 
-    app.render();
+    var app_runtime = try apprt.App.init(app, .{});
+    defer app_runtime.terminate();
 
-    while (true) {}
+    try app_runtime.run();
 }
