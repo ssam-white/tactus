@@ -63,7 +63,8 @@ fn drainMailbox(self: *App, rt_app: *apprt.App) !void {
 
 fn redrawSurface(self: *App, rt_app: *apprt.App, surface: *Surface) void {
     _ = self;
-    rt_app.redrawSurface(surface);
+    _ = rt_app;
+    apprt.Surface.redrawSurface(surface);
 }
 
 pub const Message = union(enum) {

@@ -8,7 +8,7 @@ pub const Component = union(enum) {
 
     pub fn create(alloc: Allocator) !*Component {
         const component_ptr = try alloc.create(Component);
-        errdefer alloc.destroy(component_ptr);
+        // errdefer alloc.destroy(component_ptr);
         return component_ptr;
     }
 

@@ -9,9 +9,10 @@ pub fn create(alloc: Allocator) !*Surface {
     const menu = try Component.create(alloc);
     menu.* = .{
         .menu = .{
-            .text = "Welcome"
+            .text = "L"
         }
     };
-    menu_surface.addComponent(menu);
+    menu_surface.* = .{};
+    try menu_surface.addComponent(alloc, menu);
     return menu_surface;
 }

@@ -20,11 +20,10 @@ pub fn terminate(self: *App) void {
 }
 
 pub fn run(self: *App) !void {
+
     _ = try brlapi.openConnection(.{});
-    var buf: [brlapi.max_name_length + 1]u8 = undefined;
-    try brlapi.getDriverName(&buf);
-    const driver_name: []const u8 = std.mem.sliceTo(buf[0..], 0);
-    _ = try brlapi.enterTtyMode(0, driver_name);
+    log.info("entering tty mode", .{});
+    _ = try brlapi.enterTtyMode(1, null);
 
     try self.core_app.setup();
     while (self.running) {
