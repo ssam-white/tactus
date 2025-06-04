@@ -1,4 +1,7 @@
 const braille = @import("apprt/braille.zig");
+const action = @import("apprt/action.zig");
+
+const Action = action.Action;
 
 const Runtime = enum {
     braille,

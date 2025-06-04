@@ -42,8 +42,8 @@ pub fn addSurface(self: *App, surface: *Surface) !void {
     _ = self.mailbox.push(.{ .redraw_surface = surface }, .{ .forever = {} });
 }
 
-pub fn setup(self: *App) !void {
-    const new_surface = try main_menu.create(self.alloc);
+pub fn setup(self: *App, rt_app: *apprt.App) !void {
+    const new_surface = try main_menu.create(self.alloc, rt_app, self);
     _ = self.mailbox.push(.{ .new_surface = new_surface }, .{ .instant = {} });
     
 }
@@ -58,20 +58,38 @@ fn drainMailbox(self: *App, rt_app: *apprt.App) !void {
         switch (message) {
             .new_surface => |surface| try self.addSurface(surface),
             .redraw_surface => |surface| self.redrawSurface(rt_app, surface),
+            .quit => {
+                log.info("quit message recieved", .{});
+                self.quit(rt_app);
+                return;
+            }
         }
     }
 }
 
 fn redrawSurface(self: *App, rt_app: *apprt.App, surface: *Surface) void {
-    _ = self;
-    _ = rt_app;
+    _ = self; _ = rt_app;
     apprt.Surface.redrawSurface(surface);
 }
 
 pub const Message = union(enum) {
     new_surface: *Surface,
-    redraw_surface: *Surface
+    redraw_surface: *Surface,
+    quit: void,
 };
+
+pub fn quit(self: *App, rt_app: *apprt.App) void {
+    _ = self;
+    rt_app.quit();
+}
+// pub fn performAction(
+//     self: *App,
+//     rt_app: *apprt.App,
+//     action: input.Binding.Action.Scoped(.app)
+// ) !void {
+//         switch (action) {
+//         }
+// }
 
 pub const Mailbox = struct {
     pub const Queue = BlockingQueue(Message, 64);

@@ -15,3 +15,7 @@ pub fn main() !void {
 
     try app_runtime.run();
 }
+
+test {
+    _ = @import("datastruct/main.zig");
+}

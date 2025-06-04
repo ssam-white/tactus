@@ -4,9 +4,12 @@ const log = std.log.scoped(.braille_app);
 const CoreApp = @import("../../App.zig");
 const Surface = @import("../../ui/Surface.zig");
 const brlapi = @import("../../lib/brlapi.zig");
+const apprt = @import("../../apprt.zig");
 
 core_app: *CoreApp,
 running: bool = true,
+sleep_cond: std.Thread.Condition = .{},
+mutex: std.Thread.Mutex = .{},
 
 pub fn init(core_app: *CoreApp, opts: anytype) !App {
     _ = opts;
@@ -20,22 +23,24 @@ pub fn terminate(self: *App) void {
 }
 
 pub fn run(self: *App) !void {
-
+    log.info("openning brlapi connection", .{});
     _ = try brlapi.openConnection(.{});
     log.info("entering tty mode", .{});
     _ = try brlapi.enterTtyMode(1, null);
 
-    try self.core_app.setup();
+    try self.core_app.setup(self);
     while (self.running) {
+        self.mutex.lock();
+        self.sleep_cond.wait(&self.mutex);
+        self.mutex.unlock();
+
         try self.core_app.tick(self);
-
-        const must_quit = false;
-
-        if (must_quit) self.quit();
     }
 }
 
 pub fn quit(self: *App) void {
+    brlapi.leaveTtyMode() catch unreachable;
+    brlapi.closeConnection();
     self.running = false;
 }
 
@@ -45,4 +50,17 @@ pub fn redrawSurface(self: App, surface: *Surface) void {
     log.debug("redrawing surface", .{});
 }
 
-pub fn wakeup(_: *App) void {}
+pub fn wakeup(self: *App) void {
+    self.sleep_cond.signal();
+}
+
+pub fn performAction(
+    self: *App,
+    comptime action: apprt.Action.Key,
+    value: apprt.Action.Value(action)
+) !bool {
+        _ = value;
+        switch (action) {
+            .quit => self.quit(),
+        }
+}

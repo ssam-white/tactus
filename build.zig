@@ -33,11 +33,12 @@ pub fn build(b: *std.Build) void {
     // Link tactus_lib into the executable
     exe.root_module.addImport("tactus_lib", lib_mod);
 
-    // Add BRLTTY include path (adjust if needed)
     exe.addIncludePath(.{ .cwd_relative = "/usr/include" });
-
-    // Link static brlapi library
     exe.addObjectFile(.{ .cwd_relative = "/usr/lib/libbrlapi.a" });
+
+    const xev = b.dependency("libxev", .{ .target = target, .optimize = optimize });
+    exe.root_module.addImport("xev", xev.module("xev"));
+    
 
     b.installArtifact(exe);
 

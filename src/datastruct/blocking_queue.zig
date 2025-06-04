@@ -93,17 +93,17 @@ test "basic push and pop" {
     const alloc = testing.allocator;
 
     const Q = BlockingQueue(u64, 4);
-    const q = Q.create(alloc);
-    defer q.destroy();
+    const q = try Q.create(alloc);
+    defer q.destroy(alloc);
 
     try testing.expect(q.pop() == null);
 
-    try testing.exprectEqual(@as(Q.Size, 1), q.push(1, .{ .instant = {} }));
-    try testing.exprectEqual(@as(Q.Size, 2), q.push(2, .{ .instant = {} }));
-    try testing.exprectEqual(@as(Q.Size, 3), q.push(3, .{ .instant = {} }));
-    try testing.exprectEqual(@as(Q.Size, 4), q.push(4, .{ .instant = {} }));
-    try testing.exprectEqual(@as(Q.Size, 0), q.push(5, .{ .instant = {} }));
-
+    try testing.expectEqual(@as(Q.Size, 1), q.push(1, .{ .instant = {} }));
+    try testing.expectEqual(@as(Q.Size, 2), q.push(2, .{ .instant = {} }));
+    try testing.expectEqual(@as(Q.Size, 3), q.push(3, .{ .instant = {} }));
+    try testing.expectEqual(@as(Q.Size, 4), q.push(4, .{ .instant = {} }));
+    try testing.expectEqual(@as(Q.Size, 0), q.push(5, .{ .instant = {} }));
+    
     try testing.expect(q.pop().? == 1);
     try testing.expect(q.pop().? == 2);
     try testing.expect(q.pop().? == 3);
