@@ -33,7 +33,10 @@ pub fn create(alloc: Allocator) !*App {
 }
 
 pub fn destroy(self: *App) void {
+    log.debug("destroying app", .{});
+    for (self.surfaces.items) |surface| surface.destroy(self.alloc);
     self.surfaces.deinit(self.alloc);
+
     self.alloc.destroy(self);
 }
 
@@ -45,6 +48,8 @@ pub fn addSurface(self: *App, surface: *Surface) !void {
 pub fn setup(self: *App, rt_app: *apprt.App) !void {
     const new_surface = try main_menu.create(self.alloc, rt_app, self);
     _ = self.mailbox.push(.{ .new_surface = new_surface }, .{ .instant = {} });
+    _ = self.mailbox.push(.{ .redraw_surface = new_surface }, .{ .instant = {}});
+    _ = self.mailbox.push(.{ .quit = {}}, .{ .instant = {}});
     
 }
 
@@ -95,7 +100,7 @@ pub const Mailbox = struct {
     pub const Queue = BlockingQueue(Message, 64);
 
     rt_app: *apprt.App,
-    queue: *Queue,
+    mailbox: *Queue,
 
     pub fn push(self: Mailbox, msg: Message, timeout: Queue.Timeout) !Queue.Size {
         const result = self.mailbox.push(msg, timeout);

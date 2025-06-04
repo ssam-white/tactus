@@ -30,9 +30,9 @@ pub fn run(self: *App) !void {
 
     try self.core_app.setup(self);
     while (self.running) {
-        self.mutex.lock();
-        self.sleep_cond.wait(&self.mutex);
-        self.mutex.unlock();
+        // self.mutex.lock();
+        // self.sleep_cond.wait(&self.mutex);
+        // self.mutex.unlock();
 
         try self.core_app.tick(self);
     }
@@ -40,7 +40,9 @@ pub fn run(self: *App) !void {
 
 pub fn quit(self: *App) void {
     brlapi.leaveTtyMode() catch unreachable;
+    log.info("leaving tty mode", .{});
     brlapi.closeConnection();
+    log.info("closing brltty connection", .{});
     self.running = false;
 }
 
@@ -51,6 +53,8 @@ pub fn redrawSurface(self: App, surface: *Surface) void {
 }
 
 pub fn wakeup(self: *App) void {
+    self.mutex.lock();
+    defer self.mutex.unlock();
     self.sleep_cond.signal();
 }
 

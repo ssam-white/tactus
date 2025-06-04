@@ -12,6 +12,10 @@ pub const Component = union(enum) {
         return component_ptr;
     }
 
+    pub fn destroy(self: *Component, alloc: Allocator) void {
+        alloc.destroy(self);
+    }
+
     pub fn display(self: Component) void {
         switch (self) {
             inline else => |c| c.display()

@@ -40,7 +40,7 @@ pub fn deinit(self: *Thread) void {
     self.stop.deinit();
 }
 
-pub fn threadmain(self: *Thread) void {
+pub fn threadMain(self: *Thread) void {
     self.threadMain_() catch {
         log.warn("error in input thread", .{});
     };
@@ -55,21 +55,23 @@ fn threadMain_(self: *Thread) !void {
     try self.wakeup.notify();
     
     log.debug("starting input thread", .{});
-    defer log.debug("shutting down renderer thread", .{});
+    defer log.debug("shutting down input thread", .{});
     _ = try self.loop.run(.until_done);
 }
 
 fn wakeupCallback(
     self_: ?*Thread,
-    _: *xev.loop,
+    _: *xev.Loop,
     _: *xev.Completion,
     r: xev.Async.WaitError!void
 ) xev.CallbackAction {
+        _ = self_;
         _ = r catch |err| {
             log.err("error in wakup err={}", .{ err });
             return .rearm;
         };
-        _ = self_;
+        // var t = self_.?;
+        // _ = try t.app_mailbox.push(.{ .quit = {}}, .{ .instant = {}});
         return .rearm;
     }
 
@@ -79,7 +81,7 @@ fn stopCallback(
     _: *xev.Completion,
     r: xev.Async.WaitError!void
 ) xev.CallbackAction {
-        _ = r catch unreachable;
+    _ = r catch unreachable;
         self_.?.loop.stop();
-        return .disarm;
-    }
+    return .disarm;
+}
