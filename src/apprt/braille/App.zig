@@ -30,9 +30,6 @@ pub fn run(self: *App) !void {
 
     try self.core_app.setup(self);
     while (self.running) {
-        // self.mutex.lock();
-        // self.sleep_cond.wait(&self.mutex);
-        // self.mutex.unlock();
 
         try self.core_app.tick(self);
     }

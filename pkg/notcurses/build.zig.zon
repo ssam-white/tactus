@@ -1,16 +1,14 @@
 .{
-    .name = .tactus,
+    .name = .notcurses,
     .version = "0.0.0",
-    .fingerprint = 0x640c85dd129f2eaa, // Changing this has security and trust implications.
-    .minimum_zig_version = "0.14.0",
+    .fingerprint = 0x9a111b86a088fdf7, // Changing this has security and trust implications.
+    .minimum_zig_version = "0.14.1",
     .dependencies = .{
-        .libxev = .{
-            .url = "https://github.com/mitchellh/libxev/archive/3df9337a9e84450a58a2c4af434ec1a036f7b494.tar.gz",
-            .hash = "1220db2cfd2f8a1527d4c86cc4d298e0624481ae8112bee8c87a73baee0746797d66",
+        .notcurses = .{
+            .url = "https://github.com/dankamongmen/notcurses/archive/refs/heads/master.tar.gz",
+            .hash = "N-V-__8AAM_MSAGY4e03r7i_28KuSu8mcNqfqd4Qrg9RJShM",
+            .lazy = true,
         },
-        .brlapi = .{ .path = "./pkg/brlapi", .lazy = true },
-        .notcurses = .{ .path = "pkg/notcurses", .lazy = true },
-        
     },
 
     // Specifies the set of files and directories that are included in this package.

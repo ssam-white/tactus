@@ -46,12 +46,22 @@ pub fn add(
         step.root_module.addImport("xev", dep.module("xev"));
     }
 
-    if (step.rootModuleTarget().os.tag == .linux) {
-        step.addObjectFile(.{ .cwd_relative = "/usr/lib/libbrlapi.a" });
+    if (self.config.app_runtime == .braille) {
+        if (b.lazyDependency("brlapi", .{
+            .target = target,
+            .optimize = optimize,
+        })) |dep| {
+            step.root_module.addImport("brlapi", dep.module("brlapi"));
+        }
     }
 
-    if (step.rootModuleTarget().os.tag == .macos) {
-        step.addIncludePath(.{ .cwd_relative = "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.1.sdk/usr/include/" });
+    if (self.config.app_runtime == .terminal) {
+        if (b.lazyDependency("notcurses", .{
+            .target = target,
+            .optimize = optimize,
+        })) |dep| {
+            step.root_module.addImport("notcurses", dep.module("notcurses"));
+        }
     }
 }
 
