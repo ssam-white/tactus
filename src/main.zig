@@ -37,6 +37,6 @@ fn logFn(
     // }
 }
 
-pub const std_options: std.Options = .{
-    .logFn = logFn
-};
+// pub const std_options: std.Options = .{
+//     .logFn = logFn
+// };
