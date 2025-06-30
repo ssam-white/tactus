@@ -54,12 +54,20 @@ pub fn create(alloc: Allocator) !*App {
 
 pub fn destroy(self: *App) void {
     log.debug("destroying app", .{});
+    // 
+    // stop the renderer 
+    {
+        self.renderer_thread.stop.notify() catch |err|
+            log.err("error notifying renderer thread to stop, may stall err={}", .{err});
+        self.renderer_thr.join();
+        self.renderer_thread.deinit();
+        Renderer.stop() catch log.err("an error Occurred when stopping the renderer", .{});
+    }
+
     for (self.surfaces.items) |surface| surface.destroy(self.alloc);
     self.surfaces.deinit(self.alloc);
 
     self.alloc.destroy(self);
-
-    Renderer.stop();
 }
 
 pub fn addSurface(self: *App, surface: *Surface) !void {
@@ -68,14 +76,13 @@ pub fn addSurface(self: *App, surface: *Surface) !void {
 }
 
 pub fn setup(self: *App) !void {
-    Renderer.start();
+    try Renderer.start();
     
     const new_surface = try main_menu.create(self.alloc);
     errdefer new_surface.destroy(self.alloc);
 
     try self.addSurface(new_surface);
-    self.render();
-    
+    try self.render();
 }
 
 pub fn tick(self: *App) !void {
@@ -87,7 +94,7 @@ fn drainMailbox(self: *App) !void {
         log.debug("mailbox message = {s}", .{ @tagName(message) });
         switch (message) {
             .new_surface => |surface| try self.addSurface(surface),
-            .render => self.render(),
+            .render => try self.render(),
             .quit => {
                 log.info("quit message recieved", .{});
                 self.quit();
@@ -120,12 +127,13 @@ pub const Mailbox = struct {
     }
 };
 
-fn render(self: *App) void {
-    log.debug("rendering", .{});
-    Renderer.render(self);
+pub fn render(self: *App) !void {
+    try Renderer.render(self);
 }
 
 pub fn run(self: *App) !void {
+    log.info("setting up app", .{});
+
     try self.setup();
     while (self.running) {
         self.sleep();

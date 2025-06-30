@@ -1,12 +1,14 @@
 const std = @import("std");
 const buildpkg = @import("src/build/main.zig");
 
+comptime {
+    buildpkg.requireZig("0.14.0");
+}
+
 pub fn build(b: *std.Build) !void {
     const config = try buildpkg.Config.init(b);
     const deps = try buildpkg.SharedDeps.init(b, &config);
     const exe = try buildpkg.TactusExe.init(b, &config, &deps);
-
-    exe.install();
 
     // run step
     {
@@ -27,10 +29,6 @@ pub fn build(b: *std.Build) !void {
                 .root_source_file = b.path("src/main.zig"),
                 .target = config.target,
                 .optimize = .Debug,
-                .strip = false,
-                .omit_frame_pointer = false,
-                .unwind_tables = .sync,
-
             }),
         });
         {

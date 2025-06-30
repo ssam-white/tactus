@@ -40,6 +40,7 @@ pub fn init(
 pub fn deinit(self: *Thread) void {
     self.wakeup.deinit();
     self.stop.deinit();
+    self.loop.deinit();
 }
 
 pub fn threadMain(self: *Thread) void {
@@ -75,7 +76,7 @@ fn wakeupCallback(
     var t = self_.?;
     
     // _ = renderCallback(t, undefined, undefined, {});
-    t.render();
+    t.render() catch log.err("error rendering", .{});
     
     return .rearm;
 }
@@ -109,12 +110,12 @@ fn rendererCallback(
     };
 
 
-    t.render();
+    t.render() catch log.err("error rendering");
     
     return .disarm;
 }
 
-fn render(self: *Thread) void {
-    _ = try self.app_mailbox.push(.{ .render = {} }, .{ .instant = {} });
-    // self.renderer.render();
+fn render(self: *Thread) !void {
+    // _ = try self.app_mailbox.push(.{ .render }, .{ .instant });
+    try self.app_mailbox.app.render();
 }

@@ -18,9 +18,9 @@ pub const Component = union(enum) {
         alloc.destroy(self);
     }
 
-    pub fn render(self: Component) void {
+    pub fn render(self: Component) !void {
         switch (self) {
-            .menu => |m| Renderer.renderMenu(m),
+            .menu => |m| try Renderer.renderMenu(m),
         }
     }
 };
