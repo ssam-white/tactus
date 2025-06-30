@@ -46,7 +46,7 @@ pub fn add(
         step.root_module.addImport("xev", dep.module("xev"));
     }
 
-    if (self.config.app_runtime == .braille) {
+    if (target.result.os.tag == .linux) {
         if (b.lazyDependency("brlapi", .{
             .target = target,
             .optimize = optimize,
@@ -55,7 +55,7 @@ pub fn add(
         }
     }
 
-    if (self.config.app_runtime == .terminal) {
+    if (target.result.os.tag == .macos) {
         if (b.lazyDependency("ncurses", .{
             .target = target,
             .optimize = optimize,

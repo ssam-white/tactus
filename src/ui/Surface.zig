@@ -1,5 +1,4 @@
 const std = @import("std");
-const apprt = @import("../apprt.zig");
 const App = @import("../App.zig");
 const rendererpkg = @import("../renderer.zig");
 const Surface = @This();

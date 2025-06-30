@@ -6,7 +6,5 @@ pub fn build(b: *std.Build) !void {
     const deps = try buildpkg.SharedDeps.init(b, &config);
     const exe = try buildpkg.TactusExe.init(b, &config, &deps);
 
-    if (config.app_runtime != .none) {
-        exe.install();
-    }
+    exe.install();
 }
