@@ -1,14 +1,16 @@
 const std = @import("std");
+const rendererpkg = @import("../renderer.zig");
 const Menu = @import("components/Menu.zig");
 
 const Allocator = std.mem.Allocator;
+const Renderer = rendererpkg.Renderer;
 
 pub const Component = union(enum) {
     menu: Menu,
 
     pub fn create(alloc: Allocator) !*Component {
         const component_ptr = try alloc.create(Component);
-        // errdefer alloc.destroy(component_ptr);
+        errdefer alloc.destroy(component_ptr);
         return component_ptr;
     }
 
@@ -16,9 +18,9 @@ pub const Component = union(enum) {
         alloc.destroy(self);
     }
 
-    pub fn display(self: Component) void {
+    pub fn render(self: Component) void {
         switch (self) {
-            inline else => |c| c.display()
+            .menu => |m| Renderer.renderMenu(m),
         }
     }
 };

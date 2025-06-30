@@ -1,3 +1,3 @@
 pub const c = @cImport({
-    @cInclude("unistring");
+    @cInclude("termbox2.h");
 });

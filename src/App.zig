@@ -2,33 +2,53 @@ const App = @This();
 const std = @import("std");
 const posix = std.posix;
 const log = std.log.scoped(.App);
-const apprt = @import("apprt.zig");
-const Surface = @import("ui/Surface.zig");
 const BlockingQueue = @import("datastruct/main.zig").BlockingQueue;
 const ui = @import("ui/main.zig");
+const rendererpkg = @import("renderer.zig");
+
+const Surface = ui.Surface;
 const main_menu = ui.surfaces.main_menu;
-
-const Allocator = std.mem.Allocator;
-
+const Renderer = rendererpkg.Renderer;
 const SurfaceList = std.ArrayListUnmanaged(*Surface);
+const Allocator = std.mem.Allocator;
 
 alloc: Allocator,
 surfaces: SurfaceList,
-focused: bool = true,
 focused_surface: ?*Surface = null,
+// the mailbox allows other threads to send messages to the main thread
 mailbox: Mailbox.Queue,
+running: bool = true,
+// renderer fields
+renderer_thread: rendererpkg.Thread,
+renderer_thr: std.Thread,
+// for sleeping and waking up the main thread
+sleep_cond: std.Thread.Condition = .{},
+sleep_mutex: std.Thread.Mutex = .{},
 
 pub fn create(alloc: Allocator) !*App {
     const app_ptr = try alloc.create(App);
     errdefer alloc.destroy(app_ptr);
 
+
+
     app_ptr.* = .{
         .alloc = alloc,
         .surfaces = .{},
         .mailbox = .{},
+        .renderer_thread = undefined,
+        .renderer_thr = undefined,
     };
     errdefer app_ptr.surfaces.deinit(alloc);
-    
+
+    const app_mailbox: Mailbox = .{ .app = app_ptr, .mailbox = &app_ptr.mailbox };
+    app_ptr.renderer_thread = try rendererpkg.Thread.init(alloc, app_mailbox);
+    app_ptr.renderer_thr = try std.Thread.spawn(
+        .{},
+        rendererpkg.Thread.threadMain,
+        .{ &app_ptr.renderer_thread },
+    );
+    app_ptr.renderer_thr.setName("renderer") catch {};
+
     return app_ptr;
 }
 
@@ -38,73 +58,89 @@ pub fn destroy(self: *App) void {
     self.surfaces.deinit(self.alloc);
 
     self.alloc.destroy(self);
+
+    Renderer.stop();
 }
 
 pub fn addSurface(self: *App, surface: *Surface) !void {
     try self.surfaces.append(self.alloc, surface);
-    _ = self.mailbox.push(.{ .redraw_surface = surface }, .{ .forever = {} });
+    self.focused_surface = surface;
 }
 
-pub fn setup(self: *App, rt_app: *apprt.App) !void {
-    const new_surface = try main_menu.create(self.alloc, rt_app, self);
-    _ = self.mailbox.push(.{ .new_surface = new_surface }, .{ .instant = {} });
-    _ = self.mailbox.push(.{ .redraw_surface = new_surface }, .{ .instant = {}});
-    _ = self.mailbox.push(.{ .quit = {}}, .{ .instant = {}});
+pub fn setup(self: *App) !void {
+    Renderer.start();
+    
+    const new_surface = try main_menu.create(self.alloc);
+    errdefer new_surface.destroy(self.alloc);
+
+    try self.addSurface(new_surface);
+    self.render();
     
 }
 
-pub fn tick(self: *App, rt_app: *apprt.App) !void {
-    try self.drainMailbox(rt_app);
+pub fn tick(self: *App) !void {
+    try self.drainMailbox();
 }
 
-fn drainMailbox(self: *App, rt_app: *apprt.App) !void {
+fn drainMailbox(self: *App) !void {
     while (self.mailbox.pop()) |message| {
         log.debug("mailbox message = {s}", .{ @tagName(message) });
         switch (message) {
             .new_surface => |surface| try self.addSurface(surface),
-            .redraw_surface => |surface| self.redrawSurface(rt_app, surface),
+            .render => self.render(),
             .quit => {
                 log.info("quit message recieved", .{});
-                self.quit(rt_app);
+                self.quit();
                 return;
             }
         }
     }
 }
 
-fn redrawSurface(self: *App, rt_app: *apprt.App, surface: *Surface) void {
-    _ = self; _ = rt_app;
-    apprt.Surface.redrawSurface(surface);
-}
-
 pub const Message = union(enum) {
     new_surface: *Surface,
-    redraw_surface: *Surface,
-    quit: void,
+    render,
+    quit,
 };
 
-pub fn quit(self: *App, rt_app: *apprt.App) void {
-    _ = self;
-    rt_app.quit();
+pub fn quit(self: *App) void {
+    self.running = false;
 }
-// pub fn performAction(
-//     self: *App,
-//     rt_app: *apprt.App,
-//     action: input.Binding.Action.Scoped(.app)
-// ) !void {
-//         switch (action) {
-//         }
-// }
 
 pub const Mailbox = struct {
     pub const Queue = BlockingQueue(Message, 64);
 
-    rt_app: *apprt.App,
+    app: *App,
     mailbox: *Queue,
 
     pub fn push(self: Mailbox, msg: Message, timeout: Queue.Timeout) !Queue.Size {
         const result = self.mailbox.push(msg, timeout);
-        self.rt_app.wakeup();
+        self.app.wakeup();
         return result;
     }
 };
+
+fn render(self: *App) void {
+    log.debug("rendering", .{});
+    Renderer.render(self);
+}
+
+pub fn run(self: *App) !void {
+    try self.setup();
+    while (self.running) {
+        self.sleep();
+        try self.tick();
+    }
+}
+
+pub fn sleep(self: *App) void {
+    self.sleep_mutex.lock();
+    defer self.sleep_mutex.unlock();
+    self.sleep_cond.wait(&self.sleep_mutex);
+}
+
+pub fn wakeup(self: *App) void {
+    self.sleep_mutex.lock();
+    defer self.sleep_mutex.unlock();
+    self.sleep_cond.signal();
+}

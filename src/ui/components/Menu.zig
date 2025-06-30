@@ -1,4 +1,3 @@
 const Menu = @This();
 
-text: []const u8,
-
+items: []const []const u8,

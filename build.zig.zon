@@ -9,8 +9,13 @@
             .hash = "1220db2cfd2f8a1527d4c86cc4d298e0624481ae8112bee8c87a73baee0746797d66",
         },
         .brlapi = .{ .path = "./pkg/brlapi", .lazy = true },
-        .notcurses = .{ .path = "pkg/notcurses", .lazy = true },
-        
+        .ncurses = .{ .path = "./pkg/ncurses", .lazy = true },
+        // .notcurses = .{ .path = "pkg/notcurses", .lazy = true },
+        // .termbox2 = .{ .path = "pkg/termbox2", .lazy = true },
+        // .vaxis = .{
+        //     .url = "git+https://github.com/rockorager/libvaxis.git#58bc3fd43d7706a3e7e4c2516027416456bf0516",
+        //     .hash = "vaxis-0.1.0-BWNV_BkOCQAQA-Mz_seugdTOVUwU1ubsiF6OhAmtPV4G",
+        // },
     },
 
     // Specifies the set of files and directories that are included in this package.

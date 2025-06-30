@@ -56,11 +56,11 @@ pub fn add(
     }
 
     if (self.config.app_runtime == .terminal) {
-        if (b.lazyDependency("notcurses", .{
+        if (b.lazyDependency("ncurses", .{
             .target = target,
             .optimize = optimize,
         })) |dep| {
-            step.root_module.addImport("notcurses", dep.module("notcurses"));
+            step.root_module.addImport("ncurses", dep.module("ncurses"));
         }
     }
 }
